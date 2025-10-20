@@ -4,6 +4,13 @@ async function main(){
     console.log('inited')
     buffer.addBox(0,0,0,2,2,2,{r:1.0,g:0.0,b:0.0})
     console.log(vbo,ibo)
-    await teedee.render (gl, prog)
+    
+    async function loop(){
+        
+        await teedee.render(gl, prog, vbo, ibo, buffer)
+        requestAnimationFrame(loop)
+    }
+    loop()
 }
+
 main()

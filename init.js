@@ -2,7 +2,7 @@ import { readTextFile } from "./filereader.js"
 /**
  * 
  * @param {String} canvasid 
- * @returns {canvas: HTMLCanvasElement, gl: WebGLRenderingContext}
+ * @returns {canvas: HTMLCanvasElement, gl: WebGL2RenderingContext}
  */
 export function initCanvas(canvasid){
     const canvas = document.getElementById(canvasid)
@@ -24,9 +24,9 @@ export function initCanvas(canvasid){
 }
 /**
  * 
- * @param {WebGLRenderingContext} gl 
+ * @param {WebGL2RenderingContext} gl 
  * @param {String} shaderType 
- * @returns {vs: WebGLShader, fs: WebGLShader}
+ * @returns {vs: WebGL2Shader, fs: WebGL2Shader}
  */
 export async function initShaders(gl, shaderType){
     let vssp = './shaders/vsbasic.glsl'
@@ -57,10 +57,10 @@ export async function initShaders(gl, shaderType){
 }
 /**
  * 
- * @param {WebGLRenderingContext} gl 
- * @param {WebGLShader} vs 
- * @param {WebGLShader} fs 
- * @returns {WebGLProgram}
+ * @param {WebGL2RenderingContext} gl 
+ * @param {WebGL2Shader} vs 
+ * @param {WebGL2Shader} fs 
+ * @returns {WebGL2Program}
  */
 export function createProgram(gl, vs, fs){
     console.log(vs,fs)

@@ -1,17 +1,28 @@
+
+import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
 export class triangleBuffer {
     inds = []
     verts = []
     vbuffer = []
     ibuffer = []
     gl
-    constructor(vbo,ibo,gl) {
-        this.vbuffer = vbo
-        this.ibuffer = ibo
+    /**
+     * 
+     * @param {WebGL2RenderingContext} gl 
+     */
+    constructor(gl) {
+        this.vbuffer = null
+        this.ibuffer = null
         this.gl = gl
+        this.indexCount = 0
     }
     updateBuffers(){
+        // bind provided buffers if available
+        if(this.vbo) this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo)
+        if(this.ibo) this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo)
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.verts), this.gl.DYNAMIC_DRAW)
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.inds), this.gl.DYNAMIC_DRAW)
+        this.indexCount = this.inds.length
     }
     addBox(x,y,z,w,h,d,color){
         const x0 = x - w/2
@@ -21,15 +32,16 @@ export class triangleBuffer {
         const z0 = z - d/2
         const z1 = z + d/2
         const baseind = this.verts.length / 6
+        const s3 = 1/Math.sqrt(3)
         this.verts.push(
-            x0,y0,z1, color.r, color.g, color.b,
-            x1,y0,z1, color.r, color.g, color.b,
-            x1,y1,z1, color.r, color.g, color.b,
-            x0,y1,z1, color.r, color.g, color.b,
-            x0,y0,z0, color.r, color.g, color.b,
-            x1,y0,z0, color.r, color.g, color.b,
-            x1,y1,z0, color.r, color.g, color.b,
-            x0,y1,z0, color.r, color.g, color.b,
+            x0, y0, z1,  color.r, color.g, color.b, -s3, -s3,  s3,
+            x1, y0, z1,  color.r, color.g, color.b,  s3, -s3,  s3,
+            x1, y1, z1,  color.r, color.g, color.b,  s3,  s3,  s3,
+            x0, y1, z1,  color.r, color.g, color.b, -s3,  s3,  s3,
+            x0, y0, z0,  color.r, color.g, color.b, -s3, -s3, -s3,
+            x1, y0, z0,  color.r, color.g, color.b,  s3, -s3, -s3,
+            x1, y1, z0,  color.r, color.g, color.b,  s3,  s3, -s3,
+            x0, y1, z0,  color.r, color.g, color.b, -s3,  s3, -s3,
         )
         this.inds.push(
             baseind+0, baseind+1, baseind+2, baseind+0, baseind+2, baseind+3,
@@ -50,4 +62,45 @@ export class triangleBuffer {
         this.gl.getBufferSubData(this.gl.ELEMENT_ARRAY_BUFFER, 0, readibuf)
         console.log('ibuf:',readibuf)
     }
+}
+export class Scene {
+    buffer
+    lightdir
+    lightcol
+    ambient
+    camera
+    gl
+    lookat
+    prog
+    /**
+     * 
+     * @param {Array<Number>} lightdir 
+     * @param {Array<Number>} lightcol 
+     * @param {Array<Number>} ambient 
+     * @param {Array<Number>} camera 
+     * @param {Number} fov 
+     * @param {WebGL2RenderingContext} gl 
+     */
+    constructor(lightdir,lightcol,ambient,camera,lookat,gl,prog){
+        this.lightdir = lightdir
+        this.lightcol = lightcol
+        this.ambient = ambient
+        this.camera=camera
+        this.fov=fov
+        this.gl=gl
+        this.lookat=lookat
+        this.prog=prog
+        this.buffer = new triangleBuffer(gl)
+        const ldloc = gl.getUniformLocation(prog, 'lightdir')
+        const lcloc = gl.getUniformLocation(prog, 'lightColor')
+        const acloc = gl.getUniformLocation(prog, 'ambientColor')
+        gl.uniform3fv(ldloc,lightdir)
+        gl.uniform3fv(lcloc,lightcol)
+        gl.uniform3fv(acloc,ambient)
+        const cameram = mat4.create()
+        mat4.lookAt(camera, camera, lookat, [0, 1, 0])
+        const vmatloc = gl.getUniformLocation(prog, 'vmat')
+        gl.uniformMatrix4fv(vmatloc, false, cameram)
+    }
+
 }
