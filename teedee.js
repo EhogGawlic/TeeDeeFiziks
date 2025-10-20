@@ -3,9 +3,9 @@ import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
 import { triangleBuffer, Scene } from "./utils.js"
 
 const pmat = mat4.create()
-mat4.perspective(pmat, 45 * Math.PI / 180, 1.0, 0.1, 100.0)
+mat4.perspective(pmat, 45 * Math.PI / 180, 640/480, 0.1, 100.0)
 const camera = mat4.create()
-mat4.lookAt(camera, [-5, 5, -5], [0, 0, 0], [0, 1, 0])
+mat4.lookAt(camera, [5, 5, 5], [0, 0, 0], [0, 1, 0])
 export async function initall(canvasid, stype){
     const {canvas, gl} = init.initCanvas(canvasid)
     const shaders = await init.initShaders(gl, stype)
@@ -60,7 +60,7 @@ export async function initall(canvasid, stype){
     const ldloc = gl.getUniformLocation(prog, 'lightdir')
     const lcloc = gl.getUniformLocation(prog, 'lightColor')
     const acloc = gl.getUniformLocation(prog, 'ambientColor')
-    const lightdir = [1,1,1]
+    const lightdir = [1,2,1.5]
     const lightcol=[1,0.9,0.8]
     const ambient=[0.1,0.09,0.08]
     gl.uniform3fv(ldloc,lightdir)
