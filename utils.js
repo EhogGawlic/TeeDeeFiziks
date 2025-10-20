@@ -6,6 +6,7 @@ export class triangleBuffer {
     vbuffer = []
     ibuffer = []
     gl
+    ind = 0
     /**
      * 
      * @param {WebGL2RenderingContext} gl 
@@ -24,6 +25,16 @@ export class triangleBuffer {
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.inds), this.gl.DYNAMIC_DRAW)
         this.indexCount = this.inds.length
     }
+    addQuad(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4,nx,ny,nz,r,g,b){
+        this.verts.push(
+            x1,y1,z1,r,g,b,nx,ny,nz,
+            x2,y2,z2,r,g,b,nx,ny,nz,
+            x3,y3,z3,r,g,b,nx,ny,nz,
+            x4,y4,z4,r,g,b,nx,ny,nz
+        )
+        this.inds.push(this.ind,this.ind+1,this.ind+2,this.ind,this.ind+2,this.ind+3)
+        this.ind+=4
+    }
     addBox(x,y,z,w,h,d,color){
         const x0 = x - w/2
         const x1 = x + w/2
@@ -31,36 +42,64 @@ export class triangleBuffer {
         const y1 = y + h/2
         const z0 = z - d/2
         const z1 = z + d/2
-        const baseind = this.verts.length / 6
+        const baseind = this.ind // eh 1 character shorter
         const s3 = 1/Math.sqrt(3)
-        this.verts.push(
-            x0, y0, z1,  color.r, color.g, color.b, -s3, -s3,  s3,
-            x1, y0, z1,  color.r, color.g, color.b,  s3, -s3,  s3,
-            x1, y1, z1,  color.r, color.g, color.b,  s3,  s3,  s3,
-            x0, y1, z1,  color.r, color.g, color.b, -s3,  s3,  s3,
-            x0, y0, z0,  color.r, color.g, color.b, -s3, -s3, -s3,
-            x1, y0, z0,  color.r, color.g, color.b,  s3, -s3, -s3,
-            x1, y1, z0,  color.r, color.g, color.b,  s3,  s3, -s3,
-            x0, y1, z0,  color.r, color.g, color.b, -s3,  s3, -s3,
-        )
-        this.inds.push(
-            baseind+0, baseind+1, baseind+2, baseind+0, baseind+2, baseind+3,
-            baseind+1, baseind+5, baseind+6, baseind+1, baseind+6, baseind+2,
-            baseind+5, baseind+4, baseind+7, baseind+5, baseind+7, baseind+6,
-            baseind+4, baseind+0, baseind+3, baseind+4, baseind+3, baseind+7,
-            baseind+3, baseind+2, baseind+6, baseind+3, baseind+6, baseind+7,
-            baseind+4, baseind+5, baseind+1, baseind+4, baseind+1, baseind+0,
-        )
-        console.log(this.verts,this.inds)
+            const [r,g,b] = [color.r, color.g, color.b];
+
+            this.addQuad(
+                x0, y0, z1,
+                x1, y0, z1,
+                x1, y1, z1,
+                x0, y1, z1,
+                0, 0, 1,
+                r, g, b
+            );
+
+            this.addQuad(
+                x1, y0, z0,
+                x0, y0, z0,
+                x0, y1, z0,
+                x1, y1, z0,
+                0, 0, -1,
+                r, g, b
+            );
+
+            this.addQuad(
+                x0, y0, z0,
+                x0, y0, z1,
+                x0, y1, z1,
+                x0, y1, z0,
+                -1, 0, 0,
+                r, g, b
+            );
+
+            this.addQuad(
+                x1, y0, z1,
+                x1, y0, z0,
+                x1, y1, z0,
+                x1, y1, z1,
+                1, 0, 0,
+                r, g, b
+            );
+
+            this.addQuad(
+                x0, y1, z1,
+                x1, y1, z1,
+                x1, y1, z0,
+                x0, y1, z0,
+                0, 1, 0,
+                r, g, b
+            );
+
+            this.addQuad(
+                x0, y0, z0,
+                x1, y0, z0,
+                x1, y0, z1,
+                x0, y0, z1,
+                0, -1, 0,
+                r, g, b
+            );
         this.updateBuffers()
-        console.log('updated buffers')
-        //read buffers for debugging
-        const readvbuf = new Float32Array(this.verts.length)
-        this.gl.getBufferSubData(this.gl.ARRAY_BUFFER, 0, readvbuf)
-        console.log('vbuf:',readvbuf)
-        const readibuf = new Uint16Array(this.inds.length)
-        this.gl.getBufferSubData(this.gl.ELEMENT_ARRAY_BUFFER, 0, readibuf)
-        console.log('ibuf:',readibuf)
     }
 }
 export class Scene {
