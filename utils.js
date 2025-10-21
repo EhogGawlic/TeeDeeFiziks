@@ -143,3 +143,91 @@ export class Scene {
     }
 
 }
+export class Camera {
+    pos = [0,5,-10]
+    lookat = [0,0,0]
+    gl
+    prog
+    cammat
+    lookdir=[0,0,0]
+    /**
+     * 
+     * @param {Array<Number>} pos 
+     * @param {Array<Number>} lookingat 
+     * @param {WebGL2RenderingContext} gl 
+     */
+    constructor(pos,lookingat,gl,program){
+        this.pos = pos
+        this.lookat = lookingat
+        this.gl=gl
+        this.prog=program
+        this.cammat = mat4.create()
+        this.getLookDir()
+        mat4.lookAt(this.cammat,pos,lookingat,[0,1,0])
+    }
+    getLookDir(){
+        const dist = Math.sqrt((this.pos[0]-this.lookat[0])*(this.pos[1]-this.lookat[1])*(this.pos[2]-this.lookat[2]))
+        this.lookdir[0] = (this.pos[0]-this.lookat[0])/dist
+        this.lookdir[1] = (this.pos[1]-this.lookat[1])/dist
+        this.lookdir[2] = (this.pos[2]-this.lookat[2])/dist
+    }
+    updateCam(){
+
+        mat4.lookAt(this.cammat,this.pos,this.lookat,[0,1,0])
+        const vmatloc = this.gl.getUniformLocation(this.prog, 'vmat')
+        this.gl.uniformMatrix4fv(vmatloc, false, this.cammat)
+    }
+    moveCamTo(pos){
+        this.pos = pos
+    }
+    moveCam(movement){
+        this.pos = [this.pos[0]+movement[0],this.pos[1]+movement[1],this.pos[2]+movement[2]]
+        this.lookat = [this.lookat[0]+movement[0],this.lookat[1]+movement[1],this.lookat[2]+movement[2]]
+    }
+    moveCam2(movement){
+        // Interpret movement as [forward, up, strafe]
+        // rotate the forward/strafing to match the camera's yaw (horizontal look direction)
+        
+            const forwardInput = movement[2] || 0
+            const upInput = movement[1] || 0
+            const strafeInput = movement[0] || 0
+
+            // world-space forward = lookat - pos, flattened to XZ to ignore pitch for horizontal motion
+            let fx = this.lookat[0] - this.pos[0]
+            let fz = this.lookat[2] - this.pos[2]
+            const fh = Math.hypot(fx, fz)
+            if (fh > 1e-6) {
+                fx /= fh
+                fz /= fh
+            } else {
+                fx = 0
+                fz = 1
+            }
+
+            // right = normalize(cross(forward, up))
+            // with up = [0,1,0], right = [fz, 0, -fx]
+            let rx = fz
+            let ry = 0
+            let rz = -fx
+            const rd = Math.hypot(rx, ry, rz)
+            if (rd > 1e-6) {
+                rx /= rd
+                ry /= rd
+                rz /= rd
+            } else {
+                rx = 1; ry = 0; rz = 0
+            }
+
+            // compose world movement
+            movement = [
+                fx * forwardInput + rx * strafeInput,
+                upInput,
+                fz * forwardInput + rz * strafeInput
+            ]
+        
+
+        this.pos = [this.pos[0]+movement[0],this.pos[1]+movement[1],this.pos[2]+movement[2]]
+        this.lookat = [this.lookat[0]+movement[0],this.lookat[1]+movement[1],this.lookat[2]+movement[2]]
+
+    }
+}

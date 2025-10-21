@@ -6,6 +6,7 @@ const pmat = mat4.create()
 mat4.perspective(pmat, 45 * Math.PI / 180, 640/480, 0.1, 100.0)
 const camera = mat4.create()
 mat4.lookAt(camera, [5, 5, 5], [0, 0, 0], [0, 1, 0])
+export const tcamera = camera
 export async function initall(canvasid, stype){
     const {canvas, gl} = init.initCanvas(canvasid)
     const shaders = await init.initShaders(gl, stype)
@@ -89,10 +90,4 @@ export async function render(gl,prog, vbo, ibo, buffer) {
         console.warn('No indices to draw (count=0)')
     }
     console.log('rendered a frame, count=', count)
-}
-export async function movecamera(pos,gl) {
-    const vmatloc = gl.getUniformLocation(prog, 'vmat')
-    mat4.lookAt(camera, pos,[0,0,0],[0,1,0])
-    gl.uniformMatrix4fv(vmatloc, false, camera)
-    
 }
