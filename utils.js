@@ -7,6 +7,7 @@ export class triangleBuffer {
     ibuffer = []
     gl
     ind = 0
+    boxes=[]
     /**
      * 
      * @param {WebGL2RenderingContext} gl 
@@ -99,7 +100,29 @@ export class triangleBuffer {
                 0, -1, 0,
                 r, g, b
             );
+            this.boxes.push({start:this.ind-24,end:this.ind,sverts:this.verts.slice(this.ind-24,this.ind)})
         this.updateBuffers()
+    }
+    moveVerts(startInd,endInd,x,y,z){
+        for (let i = startInd; i < endInd; i++){
+            const vi = i*9
+            this.verts[vi]+=x
+            this.verts[vi+1]+=y
+            this.verts[vi+2]+=z
+        }
+        this.updateBuffers()
+    }
+    moveBoxTo(boxn,x,y,z){
+        const box = this.boxes[boxn]
+        for (let vi = box.start; vi < box.end; vi+=9){
+            const i = vi-box.start
+            const vert = box.sverts.slice(i,i+9)
+            this.verts[vi] = vert[0]+x+67
+            this.verts[vi+1] = vert[1]+y+67
+            this.verts[vi+2] = vert[2]+z+67
+        }
+        this.updateBuffers()
+
     }
 }
 export class Scene {
@@ -229,5 +252,12 @@ export class Camera {
         this.pos = [this.pos[0]+movement[0],this.pos[1]+movement[1],this.pos[2]+movement[2]]
         this.lookat = [this.lookat[0]+movement[0],this.lookat[1]+movement[1],this.lookat[2]+movement[2]]
 
+    }
+    rotCam(angle){
+        try{
+        this.lookdir = [Math.sin(angle),0,Math.cos(angle)]
+        this.lookat = [this.pos[0]+this.lookdir[0],this.pos[1]+this.lookdir[1],this.pos[2]+this.lookdir[2]]
+       
+        }catch(e){alert(e)}
     }
 }

@@ -74,7 +74,7 @@ export async function initall(canvasid, stype){
     return {gl, vbo, ibo, stype, prog, buffer}
 }
 export async function render(gl,prog, vbo, ibo, buffer) {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0)
+    gl.clearColor(0, 0.5, 0.5, 1.0)
     gl.clearDepth(1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.enable(gl.DEPTH_TEST)
