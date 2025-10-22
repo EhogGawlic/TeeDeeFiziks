@@ -67,6 +67,24 @@ export async function initall(canvasid, stype){
     gl.uniform3fv(ldloc,lightdir)
     gl.uniform3fv(lcloc,lightcol)
     gl.uniform3fv(acloc,ambient)
+    // if using texture shader, create a simple default texture and set uniform
+    if (stype === 'tex'){
+        const tex = gl.createTexture()
+        gl.activeTexture(gl.TEXTURE0)
+        gl.bindTexture(gl.TEXTURE_2D, tex)
+        // simple 2x2 checkerboard RGBA
+        const pixels = new Uint8Array([
+            255, 255, 255, 255,   0, 0, 0, 255,
+            0, 0, 0, 255,         255, 255, 255, 255
+        ])
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+        const uTexLoc = gl.getUniformLocation(prog, 'uTexture')
+        if (uTexLoc) gl.uniform1i(uTexLoc, 0)
+    }
     //gl.uniformVector3f()
     // pass back buffers so render() can bind and draw
     buffer.vbo = vbo
