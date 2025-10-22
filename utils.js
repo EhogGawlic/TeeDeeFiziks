@@ -100,7 +100,7 @@ export class triangleBuffer {
                 0, -1, 0,
                 r, g, b
             );
-            this.boxes.push({start:this.ind-24,end:this.ind,sverts:this.verts.slice(this.ind-24,this.ind)})
+            this.boxes.push({start:this.ind-24,end:this.ind,sverts:this.verts.slice((this.ind-24)*9,this.ind*9)})
         this.updateBuffers()
     }
     moveVerts(startInd,endInd,x,y,z){
@@ -114,12 +114,12 @@ export class triangleBuffer {
     }
     moveBoxTo(boxn,x,y,z){
         const box = this.boxes[boxn]
-        for (let vi = box.start; vi < box.end; vi+=9){
-            const i = vi-box.start
+        for (let vi = box.start*9; vi < box.end*9; vi+=9){
+            const i = vi-box.start*9
             const vert = box.sverts.slice(i,i+9)
-            this.verts[vi] = vert[0]+x+67
-            this.verts[vi+1] = vert[1]+y+67
-            this.verts[vi+2] = vert[2]+z+67
+            this.verts[vi] = vert[0]+x
+            this.verts[vi+1] = vert[1]+y
+            this.verts[vi+2] = vert[2]+z
         }
         this.updateBuffers()
 
@@ -189,7 +189,8 @@ export class Camera {
         mat4.lookAt(this.cammat,pos,lookingat,[0,1,0])
     }
     getLookDir(){
-        const dist = Math.sqrt((this.pos[0]-this.lookat[0])*(this.pos[1]-this.lookat[1])*(this.pos[2]-this.lookat[2]))
+        const dist = Math.sqrt((this.pos[0]-this.lookat[0])**2+(this.pos[1]-this.lookat[1])**2+(this.pos[2]-this.lookat[2])**2)
+
         this.lookdir[0] = (this.pos[0]-this.lookat[0])/dist
         this.lookdir[1] = (this.pos[1]-this.lookat[1])/dist
         this.lookdir[2] = (this.pos[2]-this.lookat[2])/dist
@@ -199,13 +200,16 @@ export class Camera {
         mat4.lookAt(this.cammat,this.pos,this.lookat,[0,1,0])
         const vmatloc = this.gl.getUniformLocation(this.prog, 'vmat')
         this.gl.uniformMatrix4fv(vmatloc, false, this.cammat)
+        this.getLookDir()
     }
     moveCamTo(pos){
         this.pos = pos
+        this.getLookDir()
     }
     moveCam(movement){
         this.pos = [this.pos[0]+movement[0],this.pos[1]+movement[1],this.pos[2]+movement[2]]
         this.lookat = [this.lookat[0]+movement[0],this.lookat[1]+movement[1],this.lookat[2]+movement[2]]
+        this.getLookDir()
     }
     moveCam2(movement){
         // Interpret movement as [forward, up, strafe]
@@ -251,6 +255,7 @@ export class Camera {
 
         this.pos = [this.pos[0]+movement[0],this.pos[1]+movement[1],this.pos[2]+movement[2]]
         this.lookat = [this.lookat[0]+movement[0],this.lookat[1]+movement[1],this.lookat[2]+movement[2]]
+        this.getLookDir()
 
     }
     rotCam(angle){

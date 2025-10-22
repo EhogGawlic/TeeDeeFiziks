@@ -11,7 +11,8 @@ async function main(){
     buffer.addBox(0,2,0,1.5,1.5,1.5,{r:1.0,g:0.0,b:0.0})
     buffer.addBox(0,0,1.5,1,2,1,{r:1.0,g:0.0,b:0.0})
     buffer.addBox(0,0,-1.5,1,2,1,{r:1.0,g:0.0,b:0.0})
-    buffer.addBox(0,-2,0,50,2,50,{r:0.9,g:0.77,b:0.56})
+    buffer.addBox(0,-2,0,50,0,50,{r:0.9,g:0.77,b:0.56})
+    buffer.addBox(0,0,0,2,2,2,{r:1,g:1,b:1})
     console.log(vbo,ibo)
     //const scene = new Scene([5,5,5],[1,0.9,0.8],[0.1,0.09,0.08],[0,3,-50],[0,0,0],gl, prog)
     const cam = new Camera([10,2,0],[0,0,0],gl,prog)
@@ -19,13 +20,11 @@ async function main(){
     cam.updateCam()
     let x = 0
     let camera = teedee.tcamera
-        buffer.moveBoxTo(0,1234,123456890,0)
+        buffer.moveBoxTo(0,0,0,0)
     buffer.updateBuffers()
     async function loop(){
-        //cam.moveCam([Math.sin(x)*10,5,Math.cos(x)*10])
-        //cam.updateCam()
         await teedee.render(gl, prog, vbo, ibo, buffer)
-        x+=0.01
+        x+=1
         requestAnimationFrame(loop)
     }
     let angle = -Math.PI*0.5
@@ -54,8 +53,10 @@ async function main(){
                 break
         }
         cam.updateCam()
+        buffer.moveBoxTo(5,cam.pos[0]+cam.lookdir[0]*-8,-1,cam.pos[2]+cam.lookdir[2]*-8)
     }catch(e){alert(e)}
     })
+    
     loop()
 }
 

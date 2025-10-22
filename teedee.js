@@ -62,7 +62,7 @@ export async function initall(canvasid, stype){
     const lcloc = gl.getUniformLocation(prog, 'lightColor')
     const acloc = gl.getUniformLocation(prog, 'ambientColor')
     const lightdir = [1,2,1.5]
-    const lightcol=[1,0.9,0.8]
+    const lightcol=[1,1,1]
     const ambient=[0.1,0.09,0.08]
     gl.uniform3fv(ldloc,lightdir)
     gl.uniform3fv(lcloc,lightcol)
