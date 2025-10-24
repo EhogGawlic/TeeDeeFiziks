@@ -10,17 +10,20 @@ class Shape{
     buf
     shape
     bi
+    v = [0,0,0]
+    anchored=true
     /**
      * 
      * @param {String} shape 
      * @param {triangleBuffer} buffer 
      * @param {Array<Number>|Number} size 
      */
-    constructor(shape,buffer,size){
-        this.size=typeof size == Number ? [size,size,size] : size
+    constructor(shape,buffer,size,color){
+        this.sz=size
         this.si = buffer.ind+0
         this.buf=buffer
         this.shape=shape
+        this.color=color
         switch(shape){
             case 'box':
                 buffer.addBox(this.pos[0],this.pos[1],this.pos[2],this.sz[0],this.sz[1],this.sz[2],this.color)
@@ -28,7 +31,7 @@ class Shape{
                 this.bi = buffer.boxes.length-1
                 break
             case 'ball':
-                buffer.addBall(this.sz[0],this.pos[0],this.pos[1],this.pos[2],this.color.r,this.color.g,this.color.b)
+                buffer.addBall(this.sz,this.pos[0],this.pos[1],this.pos[2],this.color.r,this.color.g,this.color.b)
                 this.ei = buffer.ind+0
                 this.bi =buffer.balls.length-1
         }
@@ -42,6 +45,11 @@ class Shape{
                 this.buf.moveBallTo(this.bi,x,y,z)
         }
         this.pos = [x,y,z]
+    }
+    update(){
+        if (!this.anchored){
+            
+        }
     }
 }
 export class Game{
@@ -64,13 +72,13 @@ export class Game{
         onload()
         this.render()
     }
-    addBox(x,y,z,sx,sy,sz,parent,name){
-        const box = new Shape("box",this.buffer,[sx,sy,sz])
+    addBox(x,y,z,sx,sy,sz,parent,name,color){
+        const box = new Shape("box",this.buffer,[sx,sy,sz],color)
         box.moveTo(x,y,z)
         parent[name]=box
     }
-    addBall(x,y,z,rad,parent,name){
-        const ball = new Shape("ball",this.buffer,rad)
+    addBall(x,y,z,rad,parent,name,color){
+        const ball = new Shape("ball",this.buffer,rad,color)
         ball.moveTo(x,y,z)
         parent[name]=ball
     }

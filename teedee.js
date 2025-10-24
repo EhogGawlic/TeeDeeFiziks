@@ -58,13 +58,13 @@ export async function initall(canvasid, stype){
     gl.enableVertexAttribArray(colorLoc)
     gl.uniformMatrix4fv(pmatloc, false, pmat)
     gl.uniformMatrix4fv(vmatloc, false, camera)
-    const ldloc = gl.getUniformLocation(prog, 'lightdir')
+    const lploc = gl.getUniformLocation(prog, 'lightpos')
     const lcloc = gl.getUniformLocation(prog, 'lightColor')
     const acloc = gl.getUniformLocation(prog, 'ambientColor')
-    const lightdir = [1,2,1.5]
+    const lightpos = [5,20,10]
     const lightcol=[1,1,1]
     const ambient=[0.1,0.09,0.08]
-    gl.uniform3fv(ldloc,lightdir)
+    gl.uniform3fv(lploc,lightpos)
     gl.uniform3fv(lcloc,lightcol)
     gl.uniform3fv(acloc,ambient)
     // if using texture shader, create a simple default texture and set uniform
