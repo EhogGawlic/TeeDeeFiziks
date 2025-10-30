@@ -1,4 +1,4 @@
-function vecDist(a,b){
+export function vecDist(a,b){
     return Math.sqrt(
         (a[0]-b[0])**2+
         (a[1]-b[1])**2+
@@ -74,5 +74,5 @@ export function closestPointOnBox(ballpos,ballr,boxpos,boxsz){
             }
         }
     }
-    return closestPoint
+    return {closestPoint,minDist}
 }

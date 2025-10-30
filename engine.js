@@ -1,11 +1,13 @@
 import * as graphics from "./teedee.js"
 import * as utils from "./utils.js"
+import * as physics from "./physics.js"
 import { triangleBuffer, Scene, Camera } from "./utils.js"
 class Shape{
     si = 0
     ei = 0
     pos=[0,0,0]
     sz=[1,1,1]
+    ppos = [0,0,0]
     color={r:1,g:1,b:1}
     buf
     shape
@@ -20,6 +22,7 @@ class Shape{
      * @param {Array<Number>|Number} size 
      */
     constructor(shape,buffer,size,color,things){
+        
         this.things=things
         this.sz=size
         this.si = buffer.ind+0
@@ -33,7 +36,6 @@ class Shape{
                 this.bi = buffer.boxes.length-1
                 break
             case 'ball':
-                this.anchored=false
                 buffer.addBall(this.sz,this.pos[0],this.pos[1],this.pos[2],this.color.r,this.color.g,this.color.b)
                 this.ei = buffer.ind+0
                 this.bi =buffer.balls.length-1
@@ -52,25 +54,121 @@ class Shape{
     }
     update(){
         if (!this.anchored){
+            this.v = [
+                this.pos[0]-this.ppos[0],
+                this.pos[1]-this.ppos[1]-0.01,
+                this.pos[2]-this.ppos[2],
+            ]
+            this.ppos = [...this.pos]
             this.pos =[
                 this.pos[0]+this.v[0],
                 this.pos[1]+this.v[1],
                 this.pos[2]+this.v[2]
             ]
-            this.v[1]-=0.01
             this.moveTo(this.pos[0],this.pos[1],this.pos[2])
             //TEST COLLISIONS
+            if (!this.anchored){
             if (this.shape == 'ball'){
                 getDescendants(this.things).forEach(other=>{
                     if (other===this) return;
-                    if (other.anchored){
+                    if (other.anchored){const EPS = 1e-4; // ignore tiny numerical penetrations
+                                
                         if (other.shape=='box'){
-                            
+                            const {closestPoint,minDist} = physics.closestPointOnBox(
+                                this.pos,
+                                this.sz,
+                                other.pos,
+                                other.sz
+                            )
+                            if (minDist<0){
+                                // collision handling with tolerance and proper penetration correction
+                                if (minDist < -EPS) {
+                                    const moveVec = [
+                                        this.pos[0] - closestPoint[0],
+                                        this.pos[1] - closestPoint[1],
+                                        this.pos[2] - closestPoint[2],
+                                    ];
+                                    const len = Math.hypot(moveVec[0], moveVec[1], moveVec[2]);
+                                    // penetration depth (closestPoint routine returns negative when penetrating)
+                                    const penDepth = -minDist;
+                                    // collision normal fallback: up if vector is degenerate
+                                    const normal = len > 1e-6 ? [moveVec[0]/len, moveVec[1]/len, moveVec[2]/len] : [0,1,0];
 
+                                    // push out by penetration depth along normal
+                                    this.pos[0] += normal[0] * penDepth;
+                                    this.pos[1] += normal[1] * penDepth;
+                                    this.pos[2] += normal[2] * penDepth;
+
+                                    // reflect velocity along normal with restitution (0.8)
+                                    const restitution = 0.8;
+                                    const vn = this.v[0]*normal[0] + this.v[1]*normal[1] + this.v[2]*normal[2];
+                                    // remove the normal component and add reversed damped component
+                                    this.v[0] = this.v[0] - (1 + restitution) * vn * normal[0];
+                                    this.v[1] = this.v[1] - (1 + restitution) * vn * normal[1];
+                                    this.v[2] = this.v[2] - (1 + restitution) * vn * normal[2];
+                                    this.ppos = [
+                                        this.pos[0]-this.v[0],
+                                        this.pos[1]-this.v[1],
+                                        this.pos[2]-this.v[2]
+                                    ]
+                                    this.moveTo(this.pos[0],this.pos[1],this.pos[2])
+                                }
+                             }
+                        }
+                        if (other.shape=='ball'){
+
+                            const dist = physics.vecDist(this.pos,other.pos)
+                            const minDist = this.sz+other.sz
+                            if (dist<minDist){
+                                // simple elastic collision response
+                                const normal = [
+                                    (this.pos[0]-other.pos[0])/dist,
+                                    (this.pos[1]-other.pos[1])/dist,
+                                    (this.pos[2]-other.pos[2])/dist,
+                                ]
+                                normal[0] *= (dist-minDist)
+                                normal[1] *= (dist-minDist)
+                                normal[2] *= (dist-minDist)
+                                // push balls apart
+                                this.pos[0] -= normal[0]
+                                this.pos[1] -= normal[1]
+                                this.pos[2] -= normal[2]
+                                this.moveTo(this.pos[0],this.pos[1],this.pos[2])
+                            }
+                        }
+                    }
+
+                    if (!other.anchored){const EPS = 1e-4; // ignore tiny numerical penetrations
+                         
+                        if (other.shape=='ball'){
+
+                            const dist = physics.vecDist(this.pos,other.pos)
+                            const minDist = this.sz+other.sz
+                            if (dist<minDist){
+                                // simple elastic collision response
+                                const normal = [
+                                    (this.pos[0]-other.pos[0])/dist,
+                                    (this.pos[1]-other.pos[1])/dist,
+                                    (this.pos[2]-other.pos[2])/dist,
+                                ]
+                                normal[0] *= (dist-minDist)
+                                normal[1] *= (dist-minDist)
+                                normal[2] *= (dist-minDist)
+                                // push balls apart
+                                this.pos[0] -= normal[0]/2
+                                this.pos[1] -= normal[1]/2
+                                this.pos[2] -= normal[2]/2
+                                other.pos[0] += normal[0]/2
+                                other.pos[1] += normal[1]/2
+                                other.pos[2] += normal[2]/2
+                                other.moveTo(other.pos[0],other.pos[1],other.pos[2])
+                                this.moveTo(this.pos[0],this.pos[1],this.pos[2])
+                            }
                         }
                     }
                 })
             }
+        }
             //collision?*/
         }
         
@@ -127,12 +225,14 @@ export class Game{
     addBox(x,y,z,sx,sy,sz,parent,name,color){
         const box = new Shape("box",this.buffer,[sx,sy,sz],color,this.things)
         box.moveTo(x,y,z)
+        box.ppos = [x,y,z]
         parent[name]=box
         return parent[name]
     }
     addBall(x,y,z,rad,parent,name,color){
         const ball = new Shape("ball",this.buffer,rad,color,this.things)
         ball.moveTo(x,y,z)
+        ball.ppos = [x,y,z]
         parent[name]=ball
         return parent[name]
     }
