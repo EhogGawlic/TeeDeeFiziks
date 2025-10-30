@@ -126,7 +126,7 @@ export class triangleBuffer {
     addBall(rad,bx,by,bz,r,g,b){
     const verts = []
     const inds = []
-    const numVerts = 5
+    const numVerts = 5.00001
     let ind = this.ind
     verts.push(bx, 1+by, bz, r, g, b,0, 1, 0)
 
