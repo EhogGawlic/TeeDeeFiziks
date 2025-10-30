@@ -12,13 +12,15 @@ class Shape{
     bi
     v = [0,0,0]
     anchored=true
+    things
     /**
      * 
      * @param {String} shape 
      * @param {triangleBuffer} buffer 
      * @param {Array<Number>|Number} size 
      */
-    constructor(shape,buffer,size,color){
+    constructor(shape,buffer,size,color,things){
+        this.things=things
         this.sz=size
         this.si = buffer.ind+0
         this.buf=buffer
@@ -49,43 +51,56 @@ class Shape{
         this.pos = [x,y,z]
     }
     update(){
-        if (true){
+        if (!this.anchored){
             this.pos =[
                 this.pos[0]+this.v[0],
                 this.pos[1]+this.v[1],
                 this.pos[2]+this.v[2]
             ]
-            this.v[1]+=0.01
+            this.v[1]-=0.01
             this.moveTo(this.pos[0],this.pos[1],this.pos[2])
-            //collision?
+            //TEST COLLISIONS
+            if (this.shape == 'ball'){
+                getDescendants(this.things).forEach(other=>{
+                    if (other===this) return;
+                    if (other.anchored){
+                        if (other.shape=='box'){
+                            
+
+                        }
+                    }
+                })
+            }
+            //collision?*/
         }
         
     }
 }
 function getDescendants(obj) {
   const result = [];
-  
-  // A helper function to perform the recursive traversal
+  const visited = new WeakSet();
+
   function traverse(currentObj) {
+    if (!currentObj || typeof currentObj !== 'object') return;
+    if (visited.has(currentObj)) return;
+    visited.add(currentObj);
+
     for (const key in currentObj) {
-      if (Object.prototype.hasOwnProperty.call(currentObj, key)) {
-        const value = currentObj[key];
-        
-        // Add the current property to the result array
-        if(typeof value == Shape){
-            result.push(value)
-        }
-        
-        // Check if the value is a non-null object and not an array
-        if (typeof value === 'object' && value !== null && !Array.isArray(value) && typeof value != Shape) {
-          // If it's an object, recurse into it
-          traverse(value);
-        }
+      if (!Object.prototype.hasOwnProperty.call(currentObj, key)) continue;
+      const value = currentObj[key];
+
+      if (value instanceof Shape) {
+        result.push(value);
+        // Do NOT recurse into Shape instances (they hold a reference back to things)
+        continue;
+      }
+
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        traverse(value);
       }
     }
   }
-  
-  // Start the traversal with the initial object
+
   traverse(obj);
   return result;
 }
@@ -110,23 +125,26 @@ export class Game{
         this.render()
     }
     addBox(x,y,z,sx,sy,sz,parent,name,color){
-        const box = new Shape("box",this.buffer,[sx,sy,sz],color)
+        const box = new Shape("box",this.buffer,[sx,sy,sz],color,this.things)
         box.moveTo(x,y,z)
         parent[name]=box
         return parent[name]
     }
     addBall(x,y,z,rad,parent,name,color){
-        const ball = new Shape("ball",this.buffer,rad,color)
+        const ball = new Shape("ball",this.buffer,rad,color,this.things)
         ball.moveTo(x,y,z)
         parent[name]=ball
         return parent[name]
     }
-    async render(){
+    render = async()=>{
         await graphics.render(this.gl,this.prog,this.vbo,this.ibo,this.buffer)
-        
+        try{
         getDescendants(this.things).forEach(v=>{
             v.update()
         })
+    }catch(e){
+        alert(e)
+    }
         requestAnimationFrame(this.render)
     }
     moveCam(x,y,z){
