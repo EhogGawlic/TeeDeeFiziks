@@ -99,8 +99,8 @@ class Shape{
                                     this.pos[1] += normal[1] * penDepth;
                                     this.pos[2] += normal[2] * penDepth;
 
-                                    // reflect velocity along normal with restitution (0.8)
-                                    const restitution = 0.8;
+                                    // reflect velocity along normal with restitution (0.0001)
+                                    const restitution = 0.0001;
                                     const vn = this.v[0]*normal[0] + this.v[1]*normal[1] + this.v[2]*normal[2];
                                     // remove the normal component and add reversed damped component
                                     this.v[0] = this.v[0] - (1 + restitution) * vn * normal[0];
@@ -217,7 +217,7 @@ export class Game{
         this.ibo=ibo
         this.prog = prog
         this.buffer=buffer
-        this.camera = new Camera([0,5,10],[0,0,0],gl,prog)
+        this.camera = new Camera([0,30,1],[0,0,0],gl,prog)
         this.camera.updateCam()
         onload()
         this.render()
@@ -237,14 +237,20 @@ export class Game{
         return parent[name]
     }
     render = async()=>{
+        const t0 = performance.now()
+        getDescendants(this.things).forEach(v=>v.update())
+        this.buffer.updateBuffers()
         await graphics.render(this.gl,this.prog,this.vbo,this.ibo,this.buffer)
-        try{
-        getDescendants(this.things).forEach(v=>{
-            v.update()
-        })
-    }catch(e){
-        alert(e)
-    }
+        let rawDt = performance.now() - t0
+
+        // compute raw FPS and smooth the FPS (0 < alpha < 1)
+        const alpha = 0.08
+        const rawFps = 1000 / rawDt
+        if (this._smoothedFps === undefined) this._smoothedFps = rawFps
+        this._smoothedFps = this._smoothedFps * (1 - alpha) + rawFps * alpha
+        const fpsVal = this._smoothedFps
+
+        fps.innerText = `FPS: ${fpsVal.toFixed(1)}`
         requestAnimationFrame(this.render)
     }
     moveCam(x,y,z){

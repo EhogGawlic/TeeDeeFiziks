@@ -1,4 +1,3 @@
-
 import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
 export class triangleBuffer {
     inds = []
@@ -122,13 +121,12 @@ export class triangleBuffer {
             this.verts[vi+1] = vert[1]+y
             this.verts[vi+2] = vert[2]+z
         }
-        this.updateBuffers()
-
+        // removed this.updateBuffers() so caller can batch uploads once per frame
     }
     addBall(rad,bx,by,bz,r,g,b){
     const verts = []
     const inds = []
-    const numVerts = 32
+    const numVerts = 5
     let ind = this.ind
     verts.push(bx, 1+by, bz, r, g, b,0, 1, 0)
 
@@ -194,8 +192,7 @@ export class triangleBuffer {
             this.verts[vi+1] = vert[1]+y
             this.verts[vi+2] = vert[2]+z
         }
-        this.updateBuffers()
-
+        // removed this.updateBuffers() so caller can batch uploads once per frame
     }
 }
 export class Scene {
