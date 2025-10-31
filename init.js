@@ -6,8 +6,9 @@ import { readTextFile } from "./filereader.js"
  */
 export function initCanvas(canvasid){
     const canvas = document.getElementById(canvasid)
-    canvas.width = parseInt(canvas.style.width)
-    canvas.height = parseInt(canvas.style.height)
+    const style = window.getComputedStyle(canvas)
+    canvas.width = parseInt(style.width)
+    canvas.height = parseInt(style.height)
     /**
      * @type {WebGLRenderingContext}
      */
@@ -27,16 +28,16 @@ export function initCanvas(canvasid){
  * @returns {vs: WebGL2Shader, fs: WebGL2Shader}
  */
 export async function initShaders(gl, shaderType){
-    let vssp = './shaders/vsbasic.glsl'
-    let fssp = './shaders/fsbasic.glsl'
+    let vssp = './teedee/shaders/vsbasic.glsl'
+    let fssp = './teedee/shaders/fsbasic.glsl'
     switch(shaderType){
         case 'shaded':
-            vssp = './shaders/vsshaded.glsl'
-            fssp = './shaders/fsshaded.glsl'
+            vssp = './teedee/shaders/vsshaded.glsl'
+            fssp = './teedee/shaders/fsshaded.glsl'
             break
         case 'tex':
-            vssp = './shaders/vstex.glsl'
-            fssp = './shaders/fstex.glsl'
+            vssp = './teedee/shaders/vstex.glsl'
+            fssp = './teedee/shaders/fstex.glsl'
             break
     }
     const vstxt = await readTextFile(vssp)

@@ -202,6 +202,9 @@ function getDescendants(obj) {
   traverse(obj);
   return result;
 }
+import * as vec3 from './toji-gl-matrix-1f872b8/src/vec3.js'
+import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
+
 export class Game{
     things={}
     scripts={}
@@ -210,6 +213,67 @@ export class Game{
     gl
     constructor(){
     }
+
+    /**
+     * Calculate a ray from the camera through a screen point and find its intersection with a plane or objects
+     * @param {number} screenX - X coordinate in screen space (clientX from mouse event)
+     * @param {number} screenY - Y coordinate in screen space (clientY from mouse event)
+     * @param {HTMLCanvasElement} canvas - The WebGL canvas
+     * @param {mat4} viewMatrix - The camera's view matrix
+     * @param {number} [planeY=0] - Y coordinate of the plane to intersect with (default: 0)
+     * @returns {{x: number, y: number, z: number}|null} The intersection point or null if no intersection
+     */
+    static raytrace(screenX, screenY, canvas, planeY = 0) {
+        const viewMatrix = this.camera.cammat
+        // Convert screen coordinates to normalized device coordinates (NDC)
+        const ndcX = (2 * screenX / canvas.width) - 1;
+        const ndcY = 1 - (2 * screenY / canvas.height);  // Flip Y because screen Y goes down
+
+        // Create inverse view matrix
+        const invViewMatrix = mat4.create();
+        mat4.invert(invViewMatrix, viewMatrix);
+
+        // Create inverse projection matrix
+        const projMatrix = mat4.create();
+        mat4.perspective(projMatrix, 45 * Math.PI / 180, canvas.width/canvas.height, 0.1, 100.0);
+        const invProjMatrix = mat4.create();
+        mat4.invert(invProjMatrix, projMatrix);
+
+        // Calculate ray direction in view space
+        const rayClip = vec3.fromValues(ndcX, ndcY, -1);  // Point on near plane
+        const rayEye = vec3.create();
+        vec3.transformMat4(rayEye, rayClip, invProjMatrix);
+        rayEye[2] = -1;  // Looking down -Z in view space
+        rayEye[3] = 0;   // Direction vector should have w = 0
+
+        // Transform ray to world space
+        const rayWorld = vec3.create();
+        vec3.transformMat4(rayWorld, rayEye, invViewMatrix);
+        vec3.normalize(rayWorld, rayWorld);
+
+        // Get camera position (inverse view matrix's translation)
+        const cameraPos = vec3.fromValues(
+            invViewMatrix[12],
+            invViewMatrix[13],
+            invViewMatrix[14]
+        );
+
+        // Calculate intersection with Y plane
+        // Using parametric line equation: pos = start + t * direction
+        // Solve for t when y component equals planeY
+        const t = (planeY - cameraPos[1]) / rayWorld[1];
+
+        // If t is negative, the intersection is behind the camera
+        if (t < 0) return null;
+
+        // Calculate intersection point
+        return {
+            x: cameraPos[0] + rayWorld[0] * t,
+            y: planeY,
+            z: cameraPos[2] + rayWorld[2] * t
+        };
+    }
+
     async init(canvasid,onload){
         const {gl,vbo,ibo,stype,prog,buffer} = await graphics.initall(canvasid,"shaded")
         this.gl=gl
@@ -217,7 +281,7 @@ export class Game{
         this.ibo=ibo
         this.prog = prog
         this.buffer=buffer
-        this.camera = new Camera([0,30,1],[0,0,0],gl,prog)
+        this.camera = new Camera([30,30,30],[0,0,0],gl,prog)
         this.camera.updateCam()
         onload()
         this.render()
@@ -248,12 +312,8 @@ export class Game{
         const rawFps = 1000 / rawDt
         if (this._smoothedFps === undefined) this._smoothedFps = rawFps
         this._smoothedFps = this._smoothedFps * (1 - alpha) + rawFps * alpha
-        const fpsVal = this._smoothedFps
-
-        fps.innerText = fpsVal.toFixed(1)
-        requestAnimationFrame(this.render)
-    }
-    moveCam(x,y,z){
-
+        setTimeout(()=>{
+            requestAnimationFrame(this.render)
+        },1000/60)
     }
 }
