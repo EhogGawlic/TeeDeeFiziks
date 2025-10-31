@@ -250,7 +250,7 @@ export class Game{
         this._smoothedFps = this._smoothedFps * (1 - alpha) + rawFps * alpha
         const fpsVal = this._smoothedFps
 
-        fps.innerText = `FPS: ${fpsVal.toFixed(1)}`
+        fps.innerText = fpsVal.toFixed(1)
         requestAnimationFrame(this.render)
     }
     moveCam(x,y,z){

@@ -110,7 +110,6 @@ export class triangleBuffer {
             this.verts[vi+1]+=y
             this.verts[vi+2]+=z
         }
-        this.updateBuffers()
     }
     moveBoxTo(boxn,x,y,z){
         const box = this.boxes[boxn]
@@ -126,7 +125,7 @@ export class triangleBuffer {
     addBall(rad,bx,by,bz,r,g,b){
     const verts = []
     const inds = []
-    const numVerts = 5.00001
+    const numVerts = 9.00001
     let ind = this.ind
     verts.push(bx, 1+by, bz, r, g, b,0, 1, 0)
 
