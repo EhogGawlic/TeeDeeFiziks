@@ -1,6 +1,8 @@
 import * as graphics from "./teedee.js"
 import * as utils from "./utils.js"
 import * as physics from "./physics.js"
+import * as vec3 from './toji-gl-matrix-1f872b8/src/vec3.js'
+import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
 import { triangleBuffer, Scene, Camera } from "./utils.js"
 class Shape{
     si = 0
@@ -202,8 +204,6 @@ function getDescendants(obj) {
   traverse(obj);
   return result;
 }
-import * as vec3 from './toji-gl-matrix-1f872b8/src/vec3.js'
-import * as mat4 from './toji-gl-matrix-1f872b8/src/mat4.js'
 
 export class Game{
     things={}
